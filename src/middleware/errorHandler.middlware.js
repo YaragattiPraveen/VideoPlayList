@@ -3,8 +3,9 @@ const errorHandlerMiddleware = (error, req, res, next) => {
   const message = error.message || "Internal server error!";
 
   return res.status(statusCode).json({
-    error: message,
+    message: message,
     success: error.success,
+    errors: error.errors ? error.errors : undefined,
   });
 };
 
