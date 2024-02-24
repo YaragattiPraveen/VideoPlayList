@@ -1,29 +1,38 @@
-import express, { urlencoded } from 'express'
-import CookieParser from 'cookie-parser'
-import cors from 'cors'
-import cookieParser from 'cookie-parser'
+import express, { urlencoded } from "express";
+import CookieParser from "cookie-parser";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
-const app = express()
-
+const app = express();
 
 // Midlleware for app
 
 // This is for the cors policy
-app.use(cors({
+app.use(
+  cors({
     origin: process.env.CORS_ORIGIN,
     credentials: true,
-}))
+  })
+);
 
 // This is for body parser
-app.use(express.json({ limit: '16kb' }))
+app.use(express.json({ limit: "16kb" }));
 
 // This is for url encoded parser
-app.use(express.urlencoded({ extended: true, limit: '16kb' }))
+app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 
 // This is for static file upload
-app.use(express.static('public'))
+app.use(express.static("public"));
 
 // This is for the cookie parser
-app.use(cookieParser())
+app.use(cookieParser());
 
-export { app }
+// importing routes
+import userRouter from "./routes/user.routes.js";
+
+// route declaration
+app.use("/api/v1/users", userRouter);
+
+
+
+export { app };
