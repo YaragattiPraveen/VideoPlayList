@@ -20,4 +20,4 @@ connectDB()
   });
 
 // error middleware
-app.use(errorHandlerMiddleware)
+app.use(errorHandlerMiddleware);
