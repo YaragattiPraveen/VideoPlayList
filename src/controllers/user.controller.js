@@ -3,6 +3,7 @@ import { errorHandler } from "../utils/errorHandler.js";
 import responseHandler from "../utils/responseHandler.js";
 import uploadCloudinary from "../utils/fileUploadCloudinary.js";
 import User from "../models/user.model.js";
+import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -113,11 +114,14 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const { username, email, password } = req.body;
 
-  if ((!username || !email) && !password) {
+  if (!username && !email) {
     throw new errorHandler(
       400,
-      "All fields are required please enter the username or email and password to login"
+      "All fields are required please enter the username or email"
     );
+  }
+  if (!password) {
+    throw new errorHandler(400, "Password is required");
   }
 
   const user = await User.findOne({ $or: [{ username }, { email }] });
@@ -163,8 +167,7 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-
-  const user = await User.findByIdAndUpdate(
+  await User.findByIdAndUpdate(
     req?.user?._id,
     {
       $unset: {
@@ -191,4 +194,56 @@ const logoutUser = asyncHandler(async (req, res) => {
       })
     );
 });
-export { registerUser, loginUser, logoutUser };
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const refreshingAccessToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+  console.log(refreshingAccessToken);
+
+  if (!refreshingAccessToken) {
+    throw new errorHandler(401, "unauthorized request");
+  }
+  try {
+    const decodeToken = jwt.verify(
+      refreshingAccessToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    const user = await User.findById(decodeToken?._id).select("-password");
+
+    if (!user) {
+      throw new errorHandler(401, "Invalid refresh token");
+    }
+
+    if (refreshingAccessToken !== user?.refreshToken) {
+      throw new errorHandler(401, "Invaid refresh token is expired or used");
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+      user?._id
+    );
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new responseHandler(
+          200,
+          {
+            accessToken: accessToken,
+            refreshAccessToken: refreshToken,
+          },
+          "Access token refreshed"
+        )
+      );
+  } catch (error) {
+    throw new errorHandler(401, error?.message || "Invalid refresh token");
+  }
+});
+
+export { registerUser, loginUser, logoutUser, refreshAccessToken };
