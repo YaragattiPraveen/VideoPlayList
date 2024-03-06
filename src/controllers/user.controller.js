@@ -198,7 +198,6 @@ const logoutUser = asyncHandler(async (req, res) => {
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const refreshingAccessToken =
     req.cookies.refreshToken || req.body.refreshToken;
-  console.log(refreshingAccessToken);
 
   if (!refreshingAccessToken) {
     throw new errorHandler(401, "unauthorized request");
