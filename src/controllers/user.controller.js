@@ -274,10 +274,27 @@ const changeCurrentUserPassword = asyncHandler(async (req, res) => {
     );
 });
 
+const getCurrentUserDetails = asyncHandler(async (req, res) => {
+  // const currentUser = await User.findById(req.user?._id).select(
+  //   "-password -refreshToken"
+  // );
+
+  // if (!currentUser) {
+  //   throw new errorHandler(401, "User details not found");
+  // }
+
+  return res.status(200).json(
+    new responseHandler(200, {
+      data: req.user,
+    },"Fetched the current user details")
+  );
+});
+
 export {
   registerUser,
   loginUser,
   logoutUser,
   refreshAccessToken,
   changeCurrentUserPassword,
+  getCurrentUserDetails,
 };
