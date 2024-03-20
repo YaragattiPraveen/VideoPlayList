@@ -284,9 +284,43 @@ const getCurrentUserDetails = asyncHandler(async (req, res) => {
   // }
 
   return res.status(200).json(
-    new responseHandler(200, {
-      data: req.user,
-    },"Fetched the current user details")
+    new responseHandler(
+      200,
+      {
+        data: req.user,
+      },
+      "Fetched the current user details"
+    )
+  );
+});
+
+const updateProfileDetails = asyncHandler(async (req, res) => {
+  const { fullname, username, email } = req.body;
+
+  if (!(fullname && username && email)) {
+    throw new errorHandler(400, "All fields are required");
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        fullname,
+        email,
+        email,
+      },
+    },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  return res.status(200).json(
+    new responseHandler(
+      200,
+      {
+        data: updatedUser,
+      },
+      "User profile has been updated successfully"
+    )
   );
 });
 
@@ -297,4 +331,5 @@ export {
   refreshAccessToken,
   changeCurrentUserPassword,
   getCurrentUserDetails,
+  updateProfileDetails,
 };
